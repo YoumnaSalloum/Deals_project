@@ -17,9 +17,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-
-	// "github.com/pkg/errors"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
 	models "github.com/YoumnaSalloum/golang-test/models"
 )
 
