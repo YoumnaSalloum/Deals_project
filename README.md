@@ -16,8 +16,11 @@ docker-compose up -d && go run main.go
 ```
 This will build the docker image, start up a [MongoDB](https://www.mongodb.com) container for the project and then start the project at port `http://localhost:8000`
 MongoDb on 'localhost:27017'
+
 this is main API (POST :' http://localhost:8000/api/exchange')
+
 request body example:
+
 {
     "rates": [
         {
