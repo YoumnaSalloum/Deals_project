@@ -9,8 +9,9 @@ type Config struct {
 	RedisUri string `mapstructure:"REDIS_URL"`
 	Port     string `mapstructure:"PORT"`
 }
+
 /*
-a function to load and read the content of the app.env file. 
+a function to load and read the content of the app.env file.
 The LoadConfig function will take the path to the app.env file
 as a parameter and return the config instance and a possible error if it exists.
 */
@@ -29,5 +30,3 @@ func LoadConfig(path string) (config Config, err error) {
 	err = viper.Unmarshal(&config)
 	return
 }
-
-

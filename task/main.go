@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/YoumnaSalloum/golang-test/config"
+	models "github.com/YoumnaSalloum/golang-test/models"
 	routes "github.com/YoumnaSalloum/golang-test/routes"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -17,11 +18,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	models "github.com/YoumnaSalloum/golang-test/models"
 )
 
 //Create required variables that we'll re-assign later
-
 
 var (
 	server      *gin.Engine
@@ -79,19 +78,19 @@ func init() {
 func main() {
 	//all availbe rates for testing code
 	var rates = []models.Rate{
-    {Cfrom: "USD", Cto: "GBP", Conv: 1.5},
-    {Cfrom: "GBP", Cto: "USD", Conv: 0.5},
-}
-// type request struct {
-//     t time.Time  `json:"t"`
-//     tcur  string `json:"tcur"`
-//     fcur string  `json:"fcur"`
-//     amount  float64 `form:"amount"`
-// }
-// var txs = []request{
-//     {t: time.Now() , fcur: "USD", tcur: "GBP", amount: 1000},
-// 	// {t: time.Now() , fcur: "GBP", tcur: "USD", amount: 1000},
-// }
+		{Cfrom: "USD", Cto: "GBP", Conv: 1.5},
+		{Cfrom: "GBP", Cto: "USD", Conv: 0.5},
+	}
+	// type request struct {
+	//     t time.Time  `json:"t"`
+	//     tcur  string `json:"tcur"`
+	//     fcur string  `json:"fcur"`
+	//     amount  float64 `form:"amount"`
+	// }
+	// var txs = []request{
+	//     {t: time.Now() , fcur: "USD", tcur: "GBP", amount: 1000},
+	// 	// {t: time.Now() , fcur: "GBP", tcur: "USD", amount: 1000},
+	// }
 	config, err := config.LoadConfig(".")
 
 	if err != nil {
@@ -112,34 +111,33 @@ func main() {
 	router.GET("/healthchecker", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": value})
 	})
-///////////API
-	router.POST("/exchange", func(c *gin.Context){
-	var result float32
-	curr := new(models.BasicExchange)
-	c.ShouldBindJSON(curr)
-	 var flag bool =true
+	///////////API
+	router.POST("/exchange", func(c *gin.Context) {
+		var result float32
+		curr := new(models.BasicExchange)
+		c.ShouldBindJSON(curr)
+		var flag bool = true
 
-
-//check created_at is before our current time not in future
-if curr.CreatedAt.After(time.Now()) {
-	c.JSON(http.StatusBadRequest ,gin.H{"success": false, "message": "Sorry but you cannot do the exchange for the currencies the time of createdAt is in future"})
-return	
-}
-// check if amount is positive number
-	if(curr.Amount>0){
-			
-		//loop over availble rates
-		for _, v := range rates {
-			//check all elements in array of rates in request.
-			for i, _ := range curr.Rates {
-		if v.Cfrom == curr.Rates[i].Cfrom && v.Cto == curr.Rates[i].Cto{
-			result= float32(curr.Amount) * v.Conv
-			flag=false
-			break;
+		//check created_at is before our current time not in future
+		if curr.CreatedAt.After(time.Now()) {
+			c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Sorry but you cannot do the exchange for the currencies the time of createdAt is in future"})
+			return
 		}
-	}
-	}
-	
+		// check if amount is positive number
+		if curr.Amount > 0 {
+
+			//loop over availble rates
+			for _, v := range rates {
+				//check all elements in array of rates in request.
+				for i, _ := range curr.Rates {
+					if v.Cfrom == curr.Rates[i].Cfrom && v.Cto == curr.Rates[i].Cto {
+						result = float32(curr.Amount) * v.Conv
+						flag = false
+						break
+					}
+				}
+			}
+
 		}
 		//check if id is empty then create new unique id else create id from request id
 		var er error
@@ -154,29 +152,29 @@ return
 		}
 		//||curr.CreatedAt==""||curr.Rates==""||curr.CodeId==""||curr.Id==""
 		// if(curr.Amount==0){
- 		// panic("feild is missing or null!")
+		// panic("feild is missing or null!")
 		// }
-			curObj := &models.BasicExchange{
-			CreatedAt:curr.CreatedAt,
-			Rates: curr.Rates,
-			Id:id,
-			Amount: curr.Amount,
+		curObj := &models.BasicExchange{
+			CreatedAt: curr.CreatedAt,
+			Rates:     curr.Rates,
+			Id:        id,
+			Amount:    curr.Amount,
 			NewAmount: result,
-			CodeId:curr.CodeId,
+			CodeId:    curr.CodeId,
 		}
-	//save in db
-	 _,err := routes.CreatePost(c,curObj)
-	if err != nil {
-		 	log.Print(err)
-			 return
-	}
-	if(flag){
-		c.JSON(http.StatusBadRequest ,gin.H{"success": false, "message": "No Rate Available"})
-		return
-	}else{
-	c.JSON(http.StatusCreated, gin.H{"success": true, "message": "data created successfully", "data": curObj})
-	}
-		
+		//save in db
+		_, err := routes.CreatePost(c, curObj)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+		if flag {
+			c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "No Rate Available"})
+			return
+		} else {
+			c.JSON(http.StatusCreated, gin.H{"success": true, "message": "data created successfully", "data": curObj})
+		}
+
 	})
 
 	log.Fatal(server.Run(":" + config.Port))
