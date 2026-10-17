@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+
 	"github.com/spf13/viper"
 )
 
@@ -11,9 +13,9 @@ type Config struct {
 }
 
 /*
-a function to load and read the content of the app.env file.
-The LoadConfig function will take the path to the app.env file
-as a parameter and return the config instance and a possible error if it exists.
+LoadConfig reads app.env from `path` if it exists, and lets real environment
+variables override it. In Docker/Kubernetes there is no app.env file, so all
+values come from environment variables (set by the Deployment manifest).
 */
 func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath(path)
@@ -21,10 +23,18 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetConfigName("app")
 
 	viper.AutomaticEnv()
+	// AutomaticEnv only works for keys viper already knows, so register them.
+	for _, k := range []string{"MONGODB_LOCAL_URI", "REDIS_URL", "PORT"} {
+		_ = viper.BindEnv(k)
+	}
+	viper.SetDefault("PORT", "8000")
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
+	if err = viper.ReadInConfig(); err != nil {
+		var notFound viper.ConfigFileNotFoundError
+		if !errors.As(err, &notFound) {
+			return
+		}
+		err = nil // no app.env file: fine, use env vars only
 	}
 
 	err = viper.Unmarshal(&config)

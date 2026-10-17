@@ -3,7 +3,6 @@ package routes
 import (
 	"context"
 	"log"
-	"net/http"
 	"time"
 
 	getcollection "github.com/YoumnaSalloum/golang-test/Collection"
@@ -13,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//Database("myTaskDB").Collection("Currs")
+// Database("myTaskDB").Collection("Currs")
 func CreatePost(c *gin.Context, cur *models.BasicExchange) (primitive.ObjectID, error) {
 	var DB = database.ConnectDB()
 	var curCollection = getcollection.GetCollection(DB, "Currs")
@@ -21,10 +20,9 @@ func CreatePost(c *gin.Context, cur *models.BasicExchange) (primitive.ObjectID, 
 	defer cancel()
 	res, err := curCollection.InsertOne(ctx, cur)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 		return primitive.NilObjectID, err
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Posted successfully", "Data": map[string]interface{}{"data": res}})
 
 	return res.InsertedID.(primitive.ObjectID), nil
 }
