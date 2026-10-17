@@ -1,0 +1,5 @@
+# A namespace is a "folder" inside the cluster that groups everything for this app.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: deals

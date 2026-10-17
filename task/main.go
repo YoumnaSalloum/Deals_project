@@ -43,7 +43,7 @@ func init() {
 
 	// ? Connect to MongoDB
 	mongoconn := options.Client().ApplyURI(config.DBUri)
-	mongoclient, err := mongo.Connect(ctx, mongoconn)
+	mongoclient, err = mongo.Connect(ctx, mongoconn)
 
 	if err != nil {
 		panic(err)
@@ -166,6 +166,7 @@ func main() {
 		_, err := routes.CreatePost(c, curObj)
 		if err != nil {
 			log.Print(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "could not save exchange"})
 			return
 		}
 		if flag {
